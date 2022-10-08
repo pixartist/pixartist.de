@@ -1,24 +1,22 @@
-# Common build stage
-FROM node:14.14.0-alpine3.12 as common-build-stage
+FROM node:14-alpine as production
 
-COPY . ./app
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-RUN npm install
+COPY package.json package-lock.json ./
+COPY ./src ./src
+COPY ./nest-cli.json ./
+COPY ./tsconfig.build.json ./
+COPY ./tsconfig.json ./
 
-EXPOSE 3000
+RUN npm install -g @nestjs/cli
+RUN npm ci --only=production
 
-# Development build stage
-FROM common-build-stage as development-build-stage
+RUN npm run build
 
-ENV NODE_ENV development
+ENV PORT 3000
+ENV PORT 9229
 
-CMD ["npm", "run", "dev"]
-
-# Production build stage
-FROM common-build-stage as production-build-stage
-
-ENV NODE_ENV production
-
-CMD ["npm", "run", "start"]
+CMD ["node", "dist/main"]
