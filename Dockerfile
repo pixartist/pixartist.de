@@ -15,8 +15,7 @@ COPY ./start.sh ./
 RUN npm install -g @nestjs/cli
 RUN npm ci --only=production
 
-RUN npm install
-RUN npm run build
+RUN npm install && npm run build
 
 ENV PORT 3000
 ENV PORT 9229
