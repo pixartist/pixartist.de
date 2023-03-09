@@ -30,7 +30,7 @@ services:
     networks:
       - app-network
     ports:
-      - '5432:5432'
+      - '5431:5431'
     healthcheck:
       test: pg_isready
       interval: 10s
