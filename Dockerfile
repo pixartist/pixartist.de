@@ -10,6 +10,7 @@ COPY ./src ./src
 COPY ./nest-cli.json ./
 COPY ./tsconfig.build.json ./
 COPY ./tsconfig.json ./
+COPY ./start.sh ./
 
 RUN npm install -g @nestjs/cli
 RUN npm ci --only=production
@@ -19,4 +20,4 @@ RUN npm run build
 ENV PORT 3000
 ENV PORT 9229
 
-CMD ["node", "dist/main"]
+CMD ["sh", "start.sh"]
