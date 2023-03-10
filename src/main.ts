@@ -9,7 +9,6 @@ async function bootstrap() {
     httpsOptions: {
       key: fs.readFileSync(__dirname + '/ssl/key.pem'),
       cert: fs.readFileSync(__dirname + '/ssl/cert.pem'),
-      ca: fs.readFileSync(__dirname + '/ssl/chain.pem'),
     },
   });
   app.use(helmet());
