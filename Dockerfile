@@ -16,6 +16,7 @@ COPY ./ssl ./ssl
 RUN npm install -g @nestjs/cli
 RUN npm ci --only=production
 
+ADD "https://www.random.org/cgi-bin/randbyte?nbytes=10&format=h" skipcache
 RUN npm install
 RUN npm run build
 
