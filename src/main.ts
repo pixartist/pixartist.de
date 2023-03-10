@@ -26,4 +26,7 @@ async function bootstrap() {
 
   await app.listen(443);
 }
-bootstrap();
+bootstrap().then(() => {
+  // eslint-disable-next-line no-console
+  console.log('Server exited');
+});

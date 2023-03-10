@@ -17,7 +17,7 @@ RUN npm ci --only=production
 
 RUN npm install && npm run build
 
-ENV PORT 3000
+ENV PORT 443
 ENV PORT 9229
 
 CMD ["sh", "start.sh"]
