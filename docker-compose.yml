@@ -16,7 +16,7 @@ services:
     networks:
       - app-network
     volumes:
-      - .:/usr/src/app
+      - ./ssl:/usr/src/app/ssl
     restart: unless-stopped
     depends_on:
       - database

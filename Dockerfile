@@ -11,7 +11,6 @@ COPY ./nest-cli.json ./
 COPY ./tsconfig.build.json ./
 COPY ./tsconfig.json ./
 COPY ./start.sh ./
-COPY ./ssl ./ssl
 
 RUN npm install -g @nestjs/cli
 RUN npm ci --only=production
