@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import * as fs from 'fs';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as helmet from 'helmet';
@@ -6,8 +7,8 @@ import * as helmet from 'helmet';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     httpsOptions: {
-      key: 'privkey.pem',
-      cert: 'certificate.pem',
+      key: fs.readFileSync(__dirname + '/privkey.pem'),
+      cert: fs.readFileSync(__dirname + '/certificate.pem'),
       passphrase: process.env.CERT_PASSPHRASE,
     },
   });
