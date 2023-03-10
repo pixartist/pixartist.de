@@ -7,9 +7,9 @@ import * as helmet from 'helmet';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     httpsOptions: {
-      key: fs.readFileSync(__dirname + '/privkey.pem'),
-      cert: fs.readFileSync(__dirname + '/certificate.pem'),
-      passphrase: process.env.CERT_PASSPHRASE,
+      key: fs.readFileSync(__dirname + '/key.pem'),
+      cert: fs.readFileSync(__dirname + '/cert.pem'),
+      ca: fs.readFileSync(__dirname + '/chain.pem'),
     },
   });
   app.use(helmet());
