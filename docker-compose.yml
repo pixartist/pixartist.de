@@ -30,8 +30,6 @@ services:
   landing-page:
     image: nginx:alpine
     container_name: landing-page
-    ports:
-      - 3001:80
     volumes:
       - ./landing-page:/usr/share/nginx/html
     environment:
@@ -44,8 +42,6 @@ services:
       context: ./api
       dockerfile: dockerfile
     container_name: api
-    ports:
-      - 3000:3000
     environment:
       - API_TOKEN=${API_TOKEN}
       - NODE_ENV=production
@@ -66,10 +62,6 @@ services:
       - VIRTUAL_HOST=ddns.pixartist.de,home.ddns.pixartist.de
       - LETSENCRYPT_HOST=ddns.pixartist.de
       - VIRTUAL_PORT=8080
-    ports:
-      - "53:53"
-      - "53:53/udp"
-      - "8080:8080"
     volumes:
        - ./bind-data:/var/cache/bind
        - ./database:/root/database
