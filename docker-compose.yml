@@ -29,12 +29,31 @@ services:
   landing-page:
     image: nginx:alpine
     container_name: landing-page
+    ports:
+      - 3001:80
     volumes:
       - ./landing-page:/usr/share/nginx/html
     environment:
       - VIRTUAL_HOST=www.pixartist.de
       - LETSENCRYPT_HOST=www.pixartist.de
       - VIRTUAL_PORT=80
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: api
+    volumes:
+      - ./api:/app/api
+    ports:
+      - 3000:3000
+    environment:
+      - NODE_ENV=production
+      - VIRTUAL_HOST=api.pixartist.de
+      - LETSENCRYPT_HOST=api.pixartist.de
+      - VIRTUAL_PORT=80
+    depends_on:
+      - nginx-proxy
 
 volumes:
   conf:

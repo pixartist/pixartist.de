@@ -1,0 +1,21 @@
+# Use an official Node runtime as the base image
+FROM node:16
+
+# Set the working directory in the container to /app/api
+WORKDIR /app/api
+
+# Bundle app source inside Docker image
+COPY . /app/api
+
+# Build the app
+RUN yarn install
+RUN yarn build
+
+# Make port 3000 available to the world outside this container
+EXPOSE 3000
+
+# Define environment variable
+ENV NODE_ENV production
+
+# Run the app when the container launches
+CMD ["yarn", "start:prod"]
