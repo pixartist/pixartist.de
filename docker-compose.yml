@@ -27,7 +27,7 @@ services:
     network_mode: bridge
 
   landing-page:
-    image: nginx:aplpine
+    image: nginx:alpine
     container_name: landing-page
     volumes:
       - ./landing-page:/usr/share/nginx/html
