@@ -54,6 +54,25 @@ services:
     depends_on:
       - nginx-proxy
 
+  ddns:
+    image: bbaerthlein/docker-ddns-server:latest
+    restart: always
+    environment:
+      - DDNS_ADMIN_LOGIN=admin:${DDNS_ADMIN_LOGIN}
+      - DDNS_DOMAINS=ddns.pixartist.de
+      - DDNS_PARENT_NS=ns.pixartist.de
+      - DDNS_DEFAULT_TTL=3600
+      - VIRTUAL_HOST=ddns.pixartist.de
+      - LETSENCRYPT_HOST=ddns.pixartist.de
+      - VIRTUAL_PORT=8080
+    ports:
+      - "53:53"
+      - "53:53/udp"
+      - "8080:8080"
+    volumes:
+       - ./bind-data:/var/cache/bind
+       - ./database:/root/database
+
 volumes:
   conf:
   certs:
