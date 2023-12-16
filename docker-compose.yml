@@ -46,6 +46,7 @@ services:
     ports:
       - 3000:3000
     environment:
+      - API_TOKEN=${API_TOKEN}
       - NODE_ENV=production
       - VIRTUAL_HOST=api.pixartist.de
       - LETSENCRYPT_HOST=api.pixartist.de
