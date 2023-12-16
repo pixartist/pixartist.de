@@ -5,7 +5,6 @@ services:
     container_name: nginx-proxy
     ports:
       - 80:80
-      - 53:53
       - 443:443
       - 8080:8080
     volumes:
@@ -63,6 +62,9 @@ services:
       - VIRTUAL_HOST=ddns.pixartist.de,home.ddns.pixartist.de,ns.pixartist.de
       - LETSENCRYPT_HOST=ddns.pixartist.de
       - VIRTUAL_PORT=8080
+    ports:
+      - "53:53"
+      - "53:53/udp"
     volumes:
        - ./bind-data:/var/cache/bind
        - ./database:/root/database
