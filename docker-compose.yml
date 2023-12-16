@@ -43,8 +43,6 @@ services:
       context: ./api
       dockerfile: dockerfile
     container_name: api
-    volumes:
-      - ./api:/app/api
     ports:
       - 3000:3000
     environment:
