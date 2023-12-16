@@ -41,7 +41,7 @@ services:
   api:
     build:
       context: ./api
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     container_name: api
     volumes:
       - ./api:/app/api
