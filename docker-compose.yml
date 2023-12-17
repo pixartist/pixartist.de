@@ -69,9 +69,19 @@ services:
        - ./bind-data:/var/cache/bind
        - ./database:/root/database
 
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+
 volumes:
   conf:
   certs:
   vhost:
   html:
   acme:
+  mongodb_data:

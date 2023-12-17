@@ -16,7 +16,12 @@
       "sourceMaps": true,
       "stopOnEntry": false,
       "console": "integratedTerminal",
-      "cwd": "${workspaceFolder}/api"
+      "cwd": "${workspaceFolder}/api",
+      "env": {
+        "DEFAULT_ADMIN_EMAIL": "test@test.de",
+        "JWT_SECRET": "secret",
+        "SESSION_SECRET": "session-secret"
+      }
     }
   ]
 }
