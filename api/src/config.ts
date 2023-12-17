@@ -1,9 +1,11 @@
 export class Config {
-  static readonly PORT = "PORT";
-  static readonly JWT_SECRET = "JWT_SECRET";
-  static readonly DEFAULT_ADMIN_PASSWORD: string = "DEFAULT_ADMIN_PASSWORD";
-  static readonly DEFAULT_ADMIN_EMAIL: string = "DEFAULT_ADMIN_EMAIL";
-  static readonly SESSION_SECRET: string = "SESSION_SECRET";
+
+  static readonly PORT = 'PORT';
+  static readonly JWT_SECRET = 'JWT_SECRET';
+  static readonly DEFAULT_ADMIN_PASSWORD: string = 'DEFAULT_ADMIN_PASSWORD';
+  static readonly DEFAULT_ADMIN_EMAIL: string = 'DEFAULT_ADMIN_EMAIL';
+  static readonly SESSION_SECRET: string = 'SESSION_SECRET';
+
   static get(key: string): string | undefined {
     return process.env[key];
   }

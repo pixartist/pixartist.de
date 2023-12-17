@@ -1,13 +1,20 @@
-import { Controller, Get, Headers, Req } from '@nestjs/common';
-import { ShortcutService } from './shortcut.service';
+import { Controller, Post } from '@nestjs/common';
 
+import { ShortcutService } from './shortcut.service';
+import { Auth } from '../../user.decorator';
+import { User } from '../../user/user.schema';
 
 @Controller('shortcut')
 export class ShortcutController {
   constructor(private readonly shortcutService: ShortcutService) { }
 
-  @Get()
-  assist(@Headers('openai-token') token: string, @Headers('openai-assistant') assistant: string): string {
-    return this.shortcutService.assist();
+  @Post('start')
+  async start(@Auth() user: User): Promise<string> {
+    return await this.shortcutService.startAssist(user);
+  }
+
+  @Post('continue')
+  async start(@Auth() user: User): Promise<string> {
+    return await this.shortcutService.startAssist(user);
   }
 }

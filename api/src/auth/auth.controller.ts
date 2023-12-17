@@ -1,4 +1,5 @@
-import { Controller, Request, Post, UseGuards, Body } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
+
 import { AuthService } from './auth.service';
 import { Public } from './public.annotation';
 

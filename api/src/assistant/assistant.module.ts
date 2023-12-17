@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+
 import { ShortcutController } from './shortcut/shortcut.controller';
 import { ShortcutService } from './shortcut/shortcut.service';
 

@@ -19,8 +19,10 @@
       "cwd": "${workspaceFolder}/api",
       "env": {
         "DEFAULT_ADMIN_EMAIL": "test@test.de",
+        "DEFAULT_ADMIN_PASSWORD": "test",
         "JWT_SECRET": "secret",
         "SESSION_SECRET": "session-secret"
+        
       }
     }
   ]
