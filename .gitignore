@@ -403,3 +403,6 @@ FodyWeavers.xsd
 
 # env
 .env
+
+./database
+./bind-data
