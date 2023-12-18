@@ -22,7 +22,7 @@
         "DEFAULT_ADMIN_PASSWORD": "test",
         "JWT_SECRET": "secret",
         "SESSION_SECRET": "session-secret",
-        "MONGO_INITDB_ROOT_PASSWORD": "admin"
+        "MONGO_ROOT_PASSWORD": "admin"
       }
     }
   ]
