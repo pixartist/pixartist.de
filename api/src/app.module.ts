@@ -21,7 +21,7 @@ import { Config } from './config';
     AssistantModule,
     AuthModule,
     UserModule,
-    MongooseModule.forRoot(`mongodb://admin:${Config.getOrThrow(Config.MONGO_INITDB_ROOT_PASSWORD)}@${Config.getOr(Config.MONGO_HOST, 'localhost')}:27017`)
+    MongooseModule.forRoot(`mongodb://admin:${Config.getOrThrow(Config.MONGO_ROOT_PASSWORD)}@${Config.getOr(Config.MONGO_HOST, 'localhost')}:27017`)
   ],
   controllers: [AppController],
   providers: [AppService],
