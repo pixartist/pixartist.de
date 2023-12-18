@@ -21,8 +21,8 @@
         "DEFAULT_ADMIN_EMAIL": "test@test.de",
         "DEFAULT_ADMIN_PASSWORD": "test",
         "JWT_SECRET": "secret",
-        "SESSION_SECRET": "session-secret"
-        
+        "SESSION_SECRET": "session-secret",
+        "MONGO_INITDB_ROOT_PASSWORD": "admin"
       }
     }
   ]

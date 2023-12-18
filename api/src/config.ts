@@ -5,6 +5,8 @@ export class Config {
   static readonly DEFAULT_ADMIN_PASSWORD: string = 'DEFAULT_ADMIN_PASSWORD';
   static readonly DEFAULT_ADMIN_EMAIL: string = 'DEFAULT_ADMIN_EMAIL';
   static readonly SESSION_SECRET: string = 'SESSION_SECRET';
+  static readonly MONGO_INITDB_ROOT_PASSWORD: string = 'MONGO_INITDB_ROOT_PASSWORD';
+  static readonly MONGO_HOST: string = 'MONGO_HOST';
 
   static get(key: string): string | undefined {
     return process.env[key];
