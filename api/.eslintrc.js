@@ -25,7 +25,7 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'off',
     'quotes': ['error', 'single'],
     'import/no-unresolved': 'error',
-    'import/named': 2,
+    'import/named': 0,
     'import/namespace': 2,
     'import/order': [
       'error',
