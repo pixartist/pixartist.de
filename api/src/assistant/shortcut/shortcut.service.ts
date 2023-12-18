@@ -60,6 +60,19 @@ export class ShortcutService {
     return result;
   }
 
+  async cancel(user: User): Promise<void> {
+    const token: string | undefined = user.metadata.openai?.token;
+    if (!token) throw new PreconditionFailedException('No OpenAI token found in user metadata.');
+
+    const shortcut: Shortcut = user.metadata.openai.shortcut;
+    if (shortcut) {
+      const run = await this.getCurrentRun(token, shortcut);
+      if (['queued', 'in_progress', 'requires_action'].includes(run.status)) {
+        await this.post(`/threads/${run.thread_id}/runs/${run.id}/cancel`, token, {});
+      }
+    }
+  }
+
   private async waitForOpenAI(token: string, shortcut: Shortcut, i = 0): Promise<ShortcutResponseDto> {
     if (['cancelling', 'cancelled', 'failed', 'completed', 'expired'].includes(shortcut.currentRun.status)) {
       throw new PreconditionFailedException(`Run has already ended with status ${shortcut.currentRun.status}`);
@@ -67,12 +80,14 @@ export class ShortcutService {
     if (i > ShortcutConstants.MAX_POLL_COUNT) {
       throw new PreconditionFailedException(`Run step has not ended after ${ShortcutConstants.MAX_POLL_COUNT} polls.`);
     }
-    const run = await this.get<Run>(`/threads/${shortcut.currentRun.thread_id}/runs/${shortcut.currentRun.id}`, token);
+    const run = await this.getCurrentRun(token, shortcut);
     shortcut.currentRun = run;
     switch (run.status) {
       case 'requires_action':
         const instruction = this.getToolCallInstruction(run);
-        if (!instruction) throw new InternalServerErrorException(`Failed to retrieve tool call instruction from run ${run.required_action}`);
+        if (!instruction) {
+          throw new InternalServerErrorException(`Failed to retrieve tool call instruction from run ${run.required_action}`);
+        }
         return { ended: false, response: instruction };
       case 'queued':
       case 'in_progress':
@@ -93,15 +108,27 @@ export class ShortcutService {
         throw new InternalServerErrorException(`Unexpected status ${run.status}`);
     }
   }
+
+
+
   private getToolCallInstruction(run: Run): ShortcutInstructionDto | undefined {
-    return run.required_action?.submit_tool_outputs?.tool_calls
+    const result = run.required_action?.submit_tool_outputs?.tool_calls
       ?.filter(call => call.function.name === ShortcutConstants.FUNCTION_NAME)
       .map(call => JSON.parse(call.function.arguments))?.[0];
+    if (result && !result.params) {
+      result.params = {};
+    }
+    return result;
   }
+
   private getToolCallInstructionId(run: Run): string | undefined {
     return run.required_action?.submit_tool_outputs?.tool_calls
       ?.filter(call => call.function.name === ShortcutConstants.FUNCTION_NAME)
       .map(call => call.id)?.[0];
+  }
+
+  private async getCurrentRun(token: string, shortcut: Shortcut): Promise<Run> {
+    return await this.get<Run>(`/threads/${shortcut.currentRun.thread_id}/runs/${shortcut.currentRun.id}`, token);
   }
 
   private async createAssistant(token: string): Promise<Assistant> {

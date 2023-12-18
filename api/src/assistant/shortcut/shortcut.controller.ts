@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post } from '@nestjs/common';
 
 import { ShortcutService } from './shortcut.service';
 import { Auth } from '../../user.decorator';
@@ -17,5 +17,10 @@ export class ShortcutController {
   @Get()
   async continue(@Auth() user: User, @Body() body: any): Promise<ShortcutResponseDto> {
     return await this.shortcutService.continue(user, body);
+  }
+
+  @Delete()
+  async cancelRun(@Auth() user: User): Promise<void> {
+    await this.shortcutService.cancel(user);
   }
 }
