@@ -1,10 +1,12 @@
-import { Module } from '@nestjs/common';
+import { ConsoleLogger, Module } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
 
 import { ShortcutController } from './shortcut/shortcut.controller';
 import { ShortcutService } from './shortcut/shortcut.service';
+import { UserModule } from '../user/user.module';
 @Module({
-  imports: [],
+  imports: [HttpModule, UserModule],
   controllers: [ShortcutController],
-  providers: [ShortcutService],
+  providers: [ShortcutService, ConsoleLogger],
 })
 export class AssistantModule { }

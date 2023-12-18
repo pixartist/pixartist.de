@@ -43,13 +43,13 @@ services:
       dockerfile: dockerfile
     container_name: api
     environment:
-      - API_TOKEN=${API_TOKEN}
       - NODE_ENV=production
       - VIRTUAL_HOST=api.pixartist.de
       - LETSENCRYPT_HOST=api.pixartist.de
       - VIRTUAL_PORT=3000
     depends_on:
       - nginx-proxy
+      - mongodb
 
   ddns:
     image: bbaerthlein/docker-ddns-server:latest

@@ -9,13 +9,13 @@ import { ShortcutResponseDto } from './shortcut-response.dto';
 export class ShortcutController {
   constructor(private readonly shortcutService: ShortcutService) { }
 
-  @Post('start')
-  async start(@Auth() user: User, @Body() body: { query: string }): Promise<ShortcutResponseDto> {
-    return await this.shortcutService.startAssist(user, body.query);
+  @Post()
+  async start(@Auth() user: User, @Body() body: any): Promise<ShortcutResponseDto> {
+    return await this.shortcutService.startAssist(user, body);
   }
 
   @Get()
-  async continue(@Auth() user: User, @Body() body: { query: string }): Promise<ShortcutResponseDto> {
-    return await this.shortcutService.continue(user, body.query);
+  async continue(@Auth() user: User, @Body() body: any): Promise<ShortcutResponseDto> {
+    return await this.shortcutService.continue(user, body);
   }
 }

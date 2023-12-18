@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable, InternalServerErrorException, PreconditionFailedException } from '@nestjs/common';
+import { BadRequestException, ConsoleLogger, Injectable, InternalServerErrorException, PreconditionFailedException } from '@nestjs/common';
 import { firstValueFrom, map } from 'rxjs';
 import { AxiosResponse } from 'axios';
 
@@ -17,13 +17,13 @@ interface Shortcut {
 @Injectable()
 export class ShortcutService {
 
-
   constructor(
     private readonly httpService: HttpService,
-    private readonly userService: UserService) { }
+    private readonly userService: UserService,
+    private readonly logger: ConsoleLogger) { }
 
-  async startAssist(user: User, query: string): Promise<ShortcutResponseDto> {
-
+  async startAssist(user: User, query: any): Promise<ShortcutResponseDto> {
+    if (!query || query.length < 1) throw new BadRequestException('Query missing or empty.');
     const token: string | undefined = user.metadata.openai?.token;
     if (!token) throw new PreconditionFailedException('No OpenAI token found in user metadata.');
     const assistant = user.metadata.openai.shortcut?.assistant ?? await this.createAssistant(token);
@@ -33,10 +33,13 @@ export class ShortcutService {
     };
     user.metadata.openai.shortcut = shortcut;
     this.userService.save(user);
-    return await this.waitForOpenAI(token, shortcut);
+    const result = await this.waitForOpenAI(token, shortcut);
+    this.userService.save(user);
+    return result;
   }
 
-  async continue(user: User, query: string): Promise<ShortcutResponseDto> {
+  async continue(user: User, query: any): Promise<ShortcutResponseDto> {
+    if (!query || query.length < 1) throw new BadRequestException('Query missing or empty.');
     const token: string | undefined = user.metadata.openai?.token;
     if (!token) throw new PreconditionFailedException('No OpenAI token found in user metadata.');
 
@@ -44,13 +47,17 @@ export class ShortcutService {
     if (!shortcut) throw new PreconditionFailedException('No shortcut run started.');
 
     if (shortcut.currentRun.status === 'requires_action') {
-      await this.sendInstruction(token, shortcut.currentRun, query);
+      shortcut.currentRun = await this.sendInstruction(token, shortcut.currentRun, query);
     } else if (shortcut.currentRun.status === 'in_progress') {
       await this.sendMessage(token, shortcut.currentRun, query);
+    } else if (shortcut.currentRun.status === 'queued') {
+      // do nothing
     } else {
       throw new PreconditionFailedException(`Run not in a state where it can take messages: ${shortcut.currentRun.status}`);
     }
-    return await this.waitForOpenAI(token, shortcut);
+    const result = await this.waitForOpenAI(token, shortcut);
+    this.userService.save(user);
+    return result;
   }
 
   private async waitForOpenAI(token: string, shortcut: Shortcut, i = 0): Promise<ShortcutResponseDto> {
@@ -60,7 +67,7 @@ export class ShortcutService {
     if (i > ShortcutConstants.MAX_POLL_COUNT) {
       throw new PreconditionFailedException(`Run step has not ended after ${ShortcutConstants.MAX_POLL_COUNT} polls.`);
     }
-    const run = await this.get<Run>(`/threads/runs/${shortcut.currentRun.id}`, token);
+    const run = await this.get<Run>(`/threads/${shortcut.currentRun.thread_id}/runs/${shortcut.currentRun.id}`, token);
     shortcut.currentRun = run;
     switch (run.status) {
       case 'requires_action':
@@ -103,8 +110,8 @@ export class ShortcutService {
         name: ShortcutConstants.NAME,
         instructions: ShortcutConstants.INSTRUCTIONS,
         model: ShortcutConstants.MODEL,
-        tools: { type: 'function', function: ShortcutConstants.FUNCTION }
-      }));
+        tools: [{ type: 'function', function: ShortcutConstants.FUNCTION }]
+      } as Assistant));
   }
 
   private async getLastMessageContent(token: string, run: Run): Promise<string> {
@@ -114,34 +121,32 @@ export class ShortcutService {
     return msgs[0].content[0].type === 'text' ? msgs[0].content[0].text.value : '';
   }
 
-  private async sendMessage(token: string, run: Run, message: string): Promise<void> {
+  private async sendMessage(token: string, run: Run, message: any): Promise<void> {
     await this.post<Message>(`/threads/${run.thread_id}/messages`, token,
       {
         'role': 'user',
-        'content': message
+        'content': message instanceof String ? message : JSON.stringify(message)
       });
   }
-  private async sendInstruction(token: string, run: Run, output: string): Promise<void> {
-    await this.post<Run>(`/threads/${run.thread_id}/runs/${run.id}/submit_tool_outputs`, token,
+  private async sendInstruction(token: string, run: Run, output: any): Promise<Run> {
+    return await this.post<Run>(`/threads/${run.thread_id}/runs/${run.id}/submit_tool_outputs`, token,
       {
-        threadId: run.thread_id,
-        runId: run.id,
-        functionResponses: [
+        tool_outputs: [
           {
-            id: this.getToolCallInstructionId(run),
-            output
+            tool_call_id: this.getToolCallInstructionId(run),
+            output: output instanceof String ? output : JSON.stringify(output)
           }
         ]
       });
   }
 
-  private async createThreadAndRun(token: string, assistant: string, query: string): Promise<Run> {
+  private async createThreadAndRun(token: string, assistant: string, query: any): Promise<Run> {
     return (await this.post<Run>('/threads/runs', token, {
       assistant_id: assistant,
       thread: {
         messages: [
           {
-            role: 'user', content: query
+            role: 'user', content: query instanceof String ? query : JSON.stringify(query)
           }
         ]
       }
@@ -149,25 +154,41 @@ export class ShortcutService {
   }
 
   private async post<T>(path: string, token: string, payload: any): Promise<T> {
-    return firstValueFrom(this.httpService.post(`https://api.openai.com/v1${path}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'OpenAI-Beta': 'true'
-        },
-        data: payload
-      }).pipe(map((response: AxiosResponse<any, any>) => response.data)));
+    try {
+      return await firstValueFrom(
+
+        this.httpService.post(
+          `https://api.openai.com/v1${path}`,
+          payload,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              'OpenAI-Beta': 'assistants=v1'
+            }
+          }
+        ).pipe(map((response: AxiosResponse<any, any>) => response.data)));
+    } catch (e) {
+      this.logger.error(`Failed to post to ${path} with payload ${JSON.stringify(payload, null, 2)}, response: ${JSON.stringify(e.response.data, null, 2)}, error: ${JSON.stringify(e, null, 2)}`);
+      throw e;
+    }
   }
 
   private async get<T>(path: string, token: string): Promise<T> {
-    return firstValueFrom(this.httpService.get(`https://api.openai.com/v1${path}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'OpenAI-Beta': 'true'
+    try {
+      return await firstValueFrom(this.httpService.get(
+        `https://api.openai.com/v1${path}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'OpenAI-Beta': 'assistants=v1'
+          }
         }
-      }).pipe(map((response: AxiosResponse<any, any>) => response.data)));
+      ).pipe(map((response: AxiosResponse<any, any>) => response.data)));
+    } catch (e) {
+      this.logger.error(`Failed to post to ${path}, response: ${JSON.stringify(e.response.data, null, 2)}, error: ${JSON.stringify(e, null, 2)}`);
+      throw e;
+    }
   }
 }
