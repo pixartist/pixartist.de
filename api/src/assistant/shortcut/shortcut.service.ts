@@ -28,9 +28,11 @@ export class ShortcutService {
     const token: string | undefined = user.metadata.openai?.token;
     if (!token) throw new PreconditionFailedException('No OpenAI token found in user metadata.');
     const assistant = user.metadata.openai.shortcut?.assistant ?? await this.createAssistant(token);
+    const currentThread = user.metadata.openai.shortcut?.currentRun?.thread_id;
+
     const shortcut: Shortcut = {
       assistant,
-      currentRun: await this.createThreadAndRun(token, assistant.id, query),
+      currentRun: await (currentThread ? this.runThread(token, assistant, thread, query) : this.createThreadAndRun(token, assistant, query)),
       log: ''
     };
     this.writeLog(shortcut, 'User', query)
@@ -55,7 +57,7 @@ export class ShortcutService {
       shortcut.currentRun = await this.sendInstruction(token, shortcut.currentRun, query);
     } else if (shortcut.currentRun.status === 'in_progress') {
       this.writeLog(shortcut, 'User', query)
-      await this.sendMessage(token, shortcut.currentRun, query);
+      await this.sendMessage(token, shortcut.currentRun.thread_id, query);
     } else if (shortcut.currentRun.status === 'queued') {
       // do nothing
     } else {
@@ -171,13 +173,14 @@ export class ShortcutService {
     return msgs[0].content[0].type === 'text' ? msgs[0].content[0].text.value : '';
   }
 
-  private async sendMessage(token: string, run: Run, message: any): Promise<void> {
-    await this.post<Message>(`/threads/${run.thread_id}/messages`, token,
+  private async sendMessage(token: string, thread: string, message: any): Promise<void> {
+    await this.post<Message>(`/threads/${thread}/messages`, token,
       {
         'role': 'user',
         'content': message instanceof String ? message : JSON.stringify(message)
       });
   }
+
   private async sendInstruction(token: string, run: Run, output: any): Promise<Run> {
     return await this.post<Run>(`/threads/${run.thread_id}/runs/${run.id}/submit_tool_outputs`, token,
       {
@@ -188,6 +191,11 @@ export class ShortcutService {
           }
         ]
       });
+  }
+
+  private async runThread(token: string, assistant: string, thread: string, query: any): Promise<Run> {
+    await this.sendMessage(token, thread, query);
+    return (await this.post<Run>(`/threads/${thread}/runs`, token, { assistant_id: assistant }));
   }
 
   private async createThreadAndRun(token: string, assistant: string, query: any): Promise<Run> {

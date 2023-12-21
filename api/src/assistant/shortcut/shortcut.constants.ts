@@ -10,10 +10,10 @@ Don't remove parameters from shortcut names.
 Slashes in parameter names denote possible values for that parameter.
 Put the named parameters and their values into the params object.
 If you have to ask me any question or need additional user input, use the prompt shortcut.
+Try to find out solutions by yourself by using the shortcuts provided.
 I might ask in German but the shortcuts are mostly in english, translate if necessary and respond in english.
 For example if you want to run a shortcut called "Get Weather for [city]", you could run the function "run_shortcut" with the parameters {"run": "Get Weather for [city]", "params": {"city": "Berlin"}}.
-If a shortcut requires a specific name or id as input, there might be another shortcut to get that information.
-Generally some shortcuts are mainly to provide data while others perform actions or communicate with me (the user), the shortcut names indicates this.`;
+If a shortcut requires a specific name or id as input, you might be able to use another shortcut to list available values.`;
   static readonly MODEL = 'gpt-4';
   static readonly NAME = 'Shortcut Assistant';
   static readonly FUNCTION = {
