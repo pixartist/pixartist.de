@@ -51,7 +51,6 @@ services:
       - MONGO_HOST=mongodb
       - DEFAULT_ADMIN_PASSWORD=${DEFAULT_ADMIN_PASSWORD}
       - DEFAULT_ADMIN_EMAIL=${DEFAULT_ADMIN_EMAIL}
-      - SESSION_SECRET=${SESSION_SECRET}
       - VIRTUAL_HOST=api.pixartist.de
       - LETSENCRYPT_HOST=api.pixartist.de
       - VIRTUAL_PORT=3000

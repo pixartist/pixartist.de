@@ -99,13 +99,7 @@ export class ShortcutService {
         return { ended: false, response: instruction };
       case 'queued':
       case 'in_progress':
-        return await new Promise(
-          (resolve =>
-            setTimeout(async () =>
-              resolve(await this.waitForOpenAI(token, shortcut, ++i)),
-              ShortcutConstants.POLL_INTERVAL)
-          )
-        );
+        return await this.delayWait(token, shortcut, i);
       case 'completed':
       case 'failed':
       case 'cancelling':
@@ -115,6 +109,17 @@ export class ShortcutService {
       default:
         throw new InternalServerErrorException(`Unexpected status ${run.status}`);
     }
+  }
+  private async delayWait(token: string, shortcut: Shortcut, i: number): Promise<ShortcutResponseDto> {
+    return new Promise((resolve, reject) => {
+      setTimeout(async () => {
+        try {
+          resolve(await this.waitForOpenAI(token, shortcut, ++i));
+        } catch (e) {
+          reject(e);
+        }
+      }, ShortcutConstants.POLL_INTERVAL);
+    });
   }
 
   private writeLog(shortcut: Shortcut, by: string, message: any): void {
