@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post } from '@nestjs/common';
 
 import { ShortcutService } from './shortcut.service';
 import { Auth } from '../../user.decorator';
@@ -17,6 +17,11 @@ export class ShortcutController {
   @Post('continue')
   async continue(@Auth() user: User, @Body() body: any): Promise<ShortcutResponseDto> {
     return await this.shortcutService.continue(user, body);
+  }
+
+  @Get()
+  getLog(@Auth() user: User): string {
+    return user.metadata?.openai?.shortcut?.log;
   }
 
   @Delete()

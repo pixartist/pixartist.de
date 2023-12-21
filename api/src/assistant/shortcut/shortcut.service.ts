@@ -12,6 +12,7 @@ import { ShortcutConstants } from './shortcut.constants';
 interface Shortcut {
   assistant: Assistant;
   currentRun: Run;
+  log: string;
 }
 
 @Injectable()
@@ -29,11 +30,13 @@ export class ShortcutService {
     const assistant = user.metadata.openai.shortcut?.assistant ?? await this.createAssistant(token);
     const shortcut: Shortcut = {
       assistant,
-      currentRun: await this.createThreadAndRun(token, assistant.id, query)
+      currentRun: await this.createThreadAndRun(token, assistant.id, query),
+      log: `User: ${JSON.stringify(query, null, 2)}\n\n`
     };
     user.metadata.openai.shortcut = shortcut;
     this.userService.save(user);
     const result = await this.waitForOpenAI(token, shortcut);
+    shortcut.log += `Assistant: ${result.response}\n\n`;
     this.userService.save(user);
     return result;
   }
@@ -47,8 +50,10 @@ export class ShortcutService {
     if (!shortcut) throw new PreconditionFailedException('No shortcut run started.');
 
     if (shortcut.currentRun.status === 'requires_action') {
+      shortcut.log += `User: ${JSON.stringify(query, null, 2)}\n\n`;
       shortcut.currentRun = await this.sendInstruction(token, shortcut.currentRun, query);
     } else if (shortcut.currentRun.status === 'in_progress') {
+      shortcut.log += `User: ${JSON.stringify(query, null, 2)}\n\n`;
       await this.sendMessage(token, shortcut.currentRun, query);
     } else if (shortcut.currentRun.status === 'queued') {
       // do nothing
@@ -56,6 +61,7 @@ export class ShortcutService {
       throw new PreconditionFailedException(`Run not in a state where it can take messages: ${shortcut.currentRun.status}`);
     }
     const result = await this.waitForOpenAI(token, shortcut);
+    shortcut.log += `Assistant: ${result.response}\n\n`;
     this.userService.save(user);
     return result;
   }
@@ -68,6 +74,7 @@ export class ShortcutService {
     if (shortcut) {
       const run = await this.getCurrentRun(token, shortcut);
       if (['queued', 'in_progress', 'requires_action'].includes(run.status)) {
+        shortcut.log += 'User: Cancelled by user.\n\n'
         await this.post(`/threads/${run.thread_id}/runs/${run.id}/cancel`, token, {});
       }
     }
