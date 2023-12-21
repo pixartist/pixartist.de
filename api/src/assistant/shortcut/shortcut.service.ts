@@ -61,6 +61,7 @@ export class ShortcutService {
     } else {
       throw new PreconditionFailedException(`Run not in a state where it can take messages: ${shortcut.currentRun.status}`);
     }
+    this.userService.save(user);
     const result = await this.waitForOpenAI(token, shortcut);
     this.writeLog(shortcut, 'Assistant', result.response);
     this.userService.save(user);
@@ -76,6 +77,7 @@ export class ShortcutService {
       const run = await this.getCurrentRun(token, shortcut);
       if (['queued', 'in_progress', 'requires_action'].includes(run.status)) {
         this.writeLog(shortcut, 'User', 'Cancel');
+        this.userService.save(user);
         await this.post(`/threads/${run.thread_id}/runs/${run.id}/cancel`, token, {});
       }
     }
