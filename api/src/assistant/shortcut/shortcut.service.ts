@@ -31,12 +31,13 @@ export class ShortcutService {
     const shortcut: Shortcut = {
       assistant,
       currentRun: await this.createThreadAndRun(token, assistant.id, query),
-      log: `User: ${JSON.stringify(query, null, 2)}\n\n`
+      log: ''
     };
+    this.writeLog(shortcut, 'User', query)
     user.metadata.openai.shortcut = shortcut;
     this.userService.save(user);
     const result = await this.waitForOpenAI(token, shortcut);
-    shortcut.log += `Assistant: ${result.response}\n\n`;
+    this.writeLog(shortcut, 'Assistant', result.response);
     this.userService.save(user);
     return result;
   }
@@ -50,10 +51,10 @@ export class ShortcutService {
     if (!shortcut) throw new PreconditionFailedException('No shortcut run started.');
 
     if (shortcut.currentRun.status === 'requires_action') {
-      shortcut.log += `User: ${JSON.stringify(query, null, 2)}\n\n`;
+      this.writeLog(shortcut, 'User', query)
       shortcut.currentRun = await this.sendInstruction(token, shortcut.currentRun, query);
     } else if (shortcut.currentRun.status === 'in_progress') {
-      shortcut.log += `User: ${JSON.stringify(query, null, 2)}\n\n`;
+      this.writeLog(shortcut, 'User', query)
       await this.sendMessage(token, shortcut.currentRun, query);
     } else if (shortcut.currentRun.status === 'queued') {
       // do nothing
@@ -61,7 +62,7 @@ export class ShortcutService {
       throw new PreconditionFailedException(`Run not in a state where it can take messages: ${shortcut.currentRun.status}`);
     }
     const result = await this.waitForOpenAI(token, shortcut);
-    shortcut.log += `Assistant: ${result.response}\n\n`;
+    this.writeLog(shortcut, 'Assistant', result.response);
     this.userService.save(user);
     return result;
   }
@@ -74,7 +75,7 @@ export class ShortcutService {
     if (shortcut) {
       const run = await this.getCurrentRun(token, shortcut);
       if (['queued', 'in_progress', 'requires_action'].includes(run.status)) {
-        shortcut.log += 'User: Cancelled by user.\n\n'
+        this.writeLog(shortcut, 'User', 'Cancel');
         await this.post(`/threads/${run.thread_id}/runs/${run.id}/cancel`, token, {});
       }
     }
@@ -113,6 +114,14 @@ export class ShortcutService {
         return { ended: true, response: await this.getLastMessageContent(token, run) };
       default:
         throw new InternalServerErrorException(`Unexpected status ${run.status}`);
+    }
+  }
+
+  private writeLog(shortcut: Shortcut, by: string, message: any): void {
+    if (typeof message === 'string' || typeof message === 'number') {
+      shortcut.log += `${by}: ${message}\n\n`;
+    } else {
+      shortcut.log += `${by}: ${JSON.stringify(message, null, 2)}\n\n`;
     }
   }
 
