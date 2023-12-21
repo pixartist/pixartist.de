@@ -27,12 +27,12 @@ export class ShortcutService {
     if (!query || query.length < 1) throw new BadRequestException('Query missing or empty.');
     const token: string | undefined = user.metadata.openai?.token;
     if (!token) throw new PreconditionFailedException('No OpenAI token found in user metadata.');
-    const assistant = user.metadata.openai.shortcut?.assistant ?? await this.createAssistant(token);
-    const currentThread = user.metadata.openai.shortcut?.currentRun?.thread_id;
+    const assistant: Assistant = user.metadata.openai.shortcut?.assistant ?? await this.createAssistant(token);
+    const currentThread: string = user.metadata.openai.shortcut?.currentRun?.thread_id;
 
     const shortcut: Shortcut = {
       assistant,
-      currentRun: await (currentThread ? this.runThread(token, assistant, currentThread, query) : this.createThreadAndRun(token, assistant, query)),
+      currentRun: await (currentThread ? this.runThread(token, assistant.id, currentThread, query) : this.createThreadAndRun(token, assistant.id, query)),
       log: ''
     };
     this.writeLog(shortcut, 'User', query)
