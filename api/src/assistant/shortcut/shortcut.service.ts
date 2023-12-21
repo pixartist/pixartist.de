@@ -29,6 +29,13 @@ export class ShortcutService {
     if (!token) throw new PreconditionFailedException('No OpenAI token found in user metadata.');
     const assistant: Assistant = user.metadata.openai.shortcut?.assistant ?? await this.createAssistant(token);
     const currentThread: string = user.metadata.openai.shortcut?.currentRun?.thread_id;
+    const currentRun: string = user.metadata.openai.shortcut?.currentRun?.id;
+    if (currentThread && currentRun) {
+      const run = await this.getCurrentRun(token, user.metadata.openai.shortcut);
+      if (['queued', 'in_progress', 'requires_action'].includes(run.status)) {
+        await this.cancelRun(token, run.thread_id, run.id);
+      }
+    }
 
     const shortcut: Shortcut = {
       assistant,
@@ -80,9 +87,13 @@ export class ShortcutService {
       if (['queued', 'in_progress', 'requires_action'].includes(run.status)) {
         this.writeLog(shortcut, 'User', 'Cancel');
         this.userService.save(user);
-        await this.post(`/threads/${run.thread_id}/runs/${run.id}/cancel`, token, {});
+        await this.cancelRun(token, run.thread_id, run.id);
       }
     }
+  }
+
+  private async cancelRun(token: string, thread: string, run: string): Promise<void> {
+    await this.post(`/threads/${thread}/runs/${run}/cancel`, token, {});
   }
 
   private async waitForOpenAI(token: string, shortcut: Shortcut, i = 0): Promise<ShortcutResponseDto> {
