@@ -2,7 +2,6 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 import { UserService } from '../user/user.service';
-import { UserDto } from '../user/user.dto';
 
 @Injectable()
 export class AuthService {
@@ -15,7 +14,7 @@ export class AuthService {
     const user = await this.userService.validateCredentials(email, password);
     if (user) {
       return {
-        access_token: this.jwtService.sign(new UserDto(user).json()),
+        access_token: this.jwtService.sign({ email }),
       };
     }
     throw new UnauthorizedException()
