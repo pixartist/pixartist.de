@@ -32,7 +32,7 @@ export class ShortcutService {
 
     const shortcut: Shortcut = {
       assistant,
-      currentRun: await (currentThread ? this.runThread(token, assistant, thread, query) : this.createThreadAndRun(token, assistant, query)),
+      currentRun: await (currentThread ? this.runThread(token, assistant, currentThread, query) : this.createThreadAndRun(token, assistant, query)),
       log: ''
     };
     this.writeLog(shortcut, 'User', query)
