@@ -1,0 +1,33 @@
+{
+  "name": "kingofmycastle-frontend",
+  "version": "1.0.0",
+  "description": "King of my Castle frontend code",
+  "scripts": {
+    "reset": "rm -rf node_modules && rm -rf dist && npm install && npm run build",
+    "build": "webpack --mode production",
+    "dev": "npx webpack serve --mode development"
+  },
+  "keywords": [],
+  "author": "Finn Sohst",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pixartist/kingofmycastle.git"
+  },
+  "dependencies": {
+    "@babylonjs/core": "6.41.0",
+    "babylonjs-inspector": "6.41.0",
+    "noa-engine": "git://github.com/pixartist/noa.git",
+    "voxel-crunch": "0.2.1",
+    "kingofmycastle-lib": "file:../../lib/kingofmycastle"
+  },
+  "devDependencies": {
+    "@types/events": "^3.0.3",
+    "html-webpack-plugin": "^5.6.0",
+    "ts-loader": "9.5.1",
+    "typescript": "5.3.3",
+    "webpack": "5.90.1",
+    "webpack-cli": "5.1.4",
+    "webpack-dev-server": "4.15.1"
+  }
+}

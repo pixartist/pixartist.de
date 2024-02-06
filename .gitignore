@@ -406,3 +406,4 @@ FodyWeavers.xsd
 
 ./database
 ./bind-data
+dist
