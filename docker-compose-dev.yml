@@ -10,5 +10,12 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=admin
     ports:
       - 27017:27017
+  kingofmycastle-frontend:
+    build:
+      context: ./
+      dockerfile: kingofmycastle-frontend.dockerfile
+    container_name: kingofmycastle-frontend
+    ports:
+      - 80:80
 volumes:
   mongodb_data:

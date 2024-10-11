@@ -1,0 +1,32 @@
+{
+  "name": "kingofmycastle-lib",
+  "version": "1.0.0",
+  "description": "King of my Castle shared library",
+  "files": [
+    "/src/**/*",
+    "/dist/**/*"
+  ],
+  "scripts": {
+    "build": "rimraf ./dist && tsc && node build.js"
+  },
+  "author": "Finn Sohst (finn.sohst@gmail.com)",
+  "license": "MIT",
+  "dependencies": {
+    "@babylonjs/core": "6.41.0",
+    "babylonjs-inspector": "6.41.0",
+    "noa-engine": "git://github.com/pixartist/noa.git",
+    "voxel-crunch": "0.2.1"
+  },
+  "devDependencies": {
+    "typescript": "5.3.3",
+    "rimraf": "5.0.5"
+  },
+  "exports": {
+    "./blocktype": "./dist/blocktype.js",
+    "./gamedata-loader": "./dist/gamedata-loader.js",
+    "./gamestate": "./dist/gamestate.js",
+    "./materialtype": "./dist/materialtype.js",
+    "./worldgen/impl/default-worldgen": "./dist/worldgen/impl/default-worldgen.js",
+    "./worldgen/worldgen": "./dist/worldgen/worldgen.js"
+  }
+}
