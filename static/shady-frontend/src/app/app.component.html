@@ -1,0 +1,10 @@
+<!-- src/app/app.component.html -->
+
+<div class="app-container">
+  <div class="renderer-section">
+    <app-shader-renderer [code]="code()" #renderer></app-shader-renderer>
+  </div>
+  <div class="editor-section">
+    <app-shader-editor (code)="setCode($event)"#editor></app-shader-editor>
+  </div>
+</div>

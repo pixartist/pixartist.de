@@ -37,16 +37,6 @@ services:
       - LETSENCRYPT_HOST=www.pixartist.de
       - VIRTUAL_PORT=80
 
-  kingofmycastle-frontend:
-    build:
-      context: ./static/kingofmycastle-frontend
-      dockerfile: dockerfile
-    container_name: kingofmycastle-frontend
-    environment:
-      - VIRTUAL_HOST=komc.pixartist.de
-      - LETSENCRYPT_HOST=komc.pixartist.de
-      - VIRTUAL_PORT=80
-
   api:
     build:
       context: ./api

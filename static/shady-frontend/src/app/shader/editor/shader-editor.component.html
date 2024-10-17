@@ -1,0 +1,25 @@
+<!-- src/app/shader-editor/shader-editor.component.html -->
+<div class="expandable">
+  <div class="handle" (mousedown)="isExpanded=!isExpanded">
+    @if (isExpanded) {
+      ▶
+    } @else {
+      ◀
+    }
+  </div>
+  <div [ngClass]="{hidden: !isExpanded, visible: isExpanded}">
+    <textarea #editor>
+    #ifdef GL_ES
+    precision mediump float;
+    #endif
+
+    uniform vec2 u_resolution;
+    uniform float u_time;
+
+    void main() {
+        vec2 st = gl_FragCoord.xy / u_resolution;
+        gl_FragColor = vec4(st.x, st.y, abs(sin(u_time)), 1.0);
+    }
+    </textarea>
+  </div>
+</div>

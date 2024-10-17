@@ -1,0 +1,19 @@
+/* src/app/app.component.css */
+
+.app-container {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+}
+
+.editor-section {
+  flex-shrink: 1;
+  border-bottom: 1px solid #ccc;
+}
+
+.renderer-section {
+  min-width: 60%;
+  flex-grow: 1;
+  flex-shrink: 1;
+  position: relative;
+}

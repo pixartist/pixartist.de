@@ -1,0 +1,8 @@
+<!-- src/app/shader-renderer/shader-renderer.component.html -->
+
+<div class="canvas-container">
+  <canvas #glCanvas></canvas>
+  @if(lastError()) {
+    <div class="error-message" [innerHTML]="lastError()"></div>
+  }
+</div>
