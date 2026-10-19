@@ -410,3 +410,7 @@ FodyWeavers.xsd
 ./bind-data
 dist
 .idea
+
+# local backups and runtime data
+*.bak-*
+bind-data/

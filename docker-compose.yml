@@ -1,8 +1,10 @@
 version: '3'
 services:
   nginx-proxy:
-    image: nginxproxy/nginx-proxy
+    image: nginxproxy/nginx-proxy:1.11
     container_name: nginx-proxy
+    restart: unless-stopped
+    labels: ["com.centurylinklabs.watchtower.enable=true"]
     ports:
       - 80:80
       - 443:443
@@ -15,8 +17,10 @@ services:
       - /var/run/docker.sock:/tmp/docker.sock:ro
 
   nginx-proxy-acme:
-    image: nginxproxy/acme-companion
+    image: nginxproxy/acme-companion:2.8
     container_name: nginx-proxy-acme
+    restart: unless-stopped
+    labels: ["com.centurylinklabs.watchtower.enable=true"]
     volumes_from:
       - nginx-proxy
     volumes:
@@ -28,8 +32,10 @@ services:
     network_mode: bridge
 
   landing-page:
-    image: nginx:alpine
+    image: nginx:1-alpine
     container_name: landing-page
+    restart: unless-stopped
+    labels: ["com.centurylinklabs.watchtower.enable=true"]
     volumes:
       - ./static/landing-page:/usr/share/nginx/html
     environment:
@@ -42,6 +48,9 @@ services:
       context: ./api
       dockerfile: dockerfile
     container_name: api
+    # Switched off on purpose: unused, and the code has known vulnerabilities.
+    # Start explicitly with: docker compose --profile disabled up -d api
+    profiles: ["disabled"]
     environment:
       - NODE_ENV=production
       - JWT_SECRET=${JWT_SECRET}
@@ -59,10 +68,11 @@ services:
       - mongodb
 
   ddns:
-    image: bbaerthlein/docker-ddns-server:latest
+    image: bbaerthlein/docker-ddns-server:1.1.4
     restart: always
+    labels: ["com.centurylinklabs.watchtower.enable=true"]
     environment:
-      - DDNS_ADMIN_LOGIN=admin:${DDNS_ADMIN_LOGIN}
+      - DDNS_ADMIN_LOGIN=${DDNS_ADMIN_LOGIN}
       - DDNS_DOMAINS=ddns.pixartist.de
       - DDNS_PARENT_NS=ns.pixartist.de
       - DDNS_DEFAULT_TTL=3600
@@ -77,13 +87,62 @@ services:
        - ./database:/root/database
 
   mongodb:
-    image: mongo
+    image: mongo:7
     container_name: mongodb
+    restart: unless-stopped
+    labels: ["com.centurylinklabs.watchtower.enable=true"]
     volumes:
       - mongodb_data:/data/db
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+
+  # Cross-encoder reranker for finnory (memory.ddns.pixartist.de on the NAS):
+  # the NAS finds ~20 candidates itself, this re-orders them by reading query
+  # and text together. Optional for finnory: if this is down, search keeps its
+  # own order. Every request needs RERANK_API_KEY.
+  rerank:
+    # Built from /opt/finnory-rerank (rerank/ in the finnory repo; deploy with
+    # deploy/deploy-rerank.sh there). Not auto-updated: watchtower only handles
+    # pulled images. int8 bge-reranker-v2-m3: ~1.2 s for finnorys 10 candidates.
+    build: /opt/finnory-rerank
+    image: finnory-rerank:local
+    pull_policy: build
+    container_name: rerank
+    restart: unless-stopped
+    environment:
+      API_KEY: ${RERANK_API_KEY}
+      MODEL: onnx-community/bge-reranker-v2-m3-ONNX
+      DTYPE: q8
+      THREADS: 8
+      VIRTUAL_HOST: rerank.pixartist.de
+      LETSENCRYPT_HOST: rerank.pixartist.de
+      VIRTUAL_PORT: 8080
+    ports:
+      - 127.0.0.1:8091:8080
+    volumes:
+      - rerank_models:/models
+
+  # Updates the labelled containers, but only when asked: the NAS backup job
+  # calls it (via /usr/local/bin/nas-backup-gate) after all backups succeeded.
+  # Tags are pinned to a major/minor line, so this only brings patch releases.
+  watchtower:
+    image: nickfedor/watchtower:latest
+    container_name: watchtower
+    restart: unless-stopped
+    labels: ["com.centurylinklabs.watchtower.enable=true"]
+    ports:
+      - 127.0.0.1:8090:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      TZ: Europe/Berlin
+    command:
+      - --label-enable
+      - --cleanup
+      - --http-api-endpoints=update
+      - --http-api-token=${WATCHTOWER_API_TOKEN}
+      - --http-api-update-timeout=90m
 
 volumes:
   conf:
@@ -92,3 +151,4 @@ volumes:
   html:
   acme:
   mongodb_data:
+  rerank_models:
