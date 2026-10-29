@@ -97,32 +97,6 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
 
-  # Cross-encoder reranker for finnory (memory.ddns.pixartist.de on the NAS):
-  # the NAS finds ~20 candidates itself, this re-orders them by reading query
-  # and text together. Optional for finnory: if this is down, search keeps its
-  # own order. Every request needs RERANK_API_KEY.
-  rerank:
-    # Built from /opt/finnory-rerank (rerank/ in the finnory repo; deploy with
-    # deploy/deploy-rerank.sh there). Not auto-updated: watchtower only handles
-    # pulled images. int8 bge-reranker-v2-m3: ~1.2 s for finnorys 10 candidates.
-    build: /opt/finnory-rerank
-    image: finnory-rerank:local
-    pull_policy: build
-    container_name: rerank
-    restart: unless-stopped
-    environment:
-      API_KEY: ${RERANK_API_KEY}
-      MODEL: onnx-community/bge-reranker-v2-m3-ONNX
-      DTYPE: q8
-      THREADS: 8
-      VIRTUAL_HOST: rerank.pixartist.de
-      LETSENCRYPT_HOST: rerank.pixartist.de
-      VIRTUAL_PORT: 8080
-    ports:
-      - 127.0.0.1:8091:8080
-    volumes:
-      - rerank_models:/models
-
   # Updates the labelled containers, but only when asked: the NAS backup job
   # calls it (via /usr/local/bin/nas-backup-gate) after all backups succeeded.
   # Tags are pinned to a major/minor line, so this only brings patch releases.
@@ -151,4 +125,3 @@ volumes:
   html:
   acme:
   mongodb_data:
-  rerank_models:
